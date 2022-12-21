@@ -11,23 +11,41 @@ VALUE_DICT = {4: "X", 5: "Z"}
 
 
 def protein_to_mass(peptide: str, amino_acid_dict: dict) -> tuple:
+    """
+    function to turn a peptide sequence into a tuple of the masses of each amino acid
+    :param peptide: string representing the peptide
+    :param amino_acid_dict: dictionary with one-letter amino acid code as keys and mass rounded to the nearest integer
+                            as value
+    :return: tuple containing the masses of each amino acid in the peptide
+    """
     return tuple(amino_acid_dict[i] for i in peptide)
 
 
 def masses_to_vector(masses: tuple) -> dict:
+    """
+    convert an object accessible by index containing amino acid masses to a binary vector
+    :param masses: for example a tuple containing the masses of each amino acids of a peptide
+    :return: dictionary with indices as keys and binary vector as value
+    """
     return {i: [0 for _ in range(masses[i] - 1)] + [1] for i in range(len(masses))}
 
 
-def score_peptide(vector: tuple, spectrum: tuple):
+def score_peptide(vector: tuple, spectrum: tuple) -> int:
+    """
+    get the score of a protein vector against a spectrum, have to be equal length
+    :param vector: a binary vector representing a peptide e.g. (0, 0, 0, 1, 0, 0, 0, 0, 1) -> XZ
+    :param spectrum: tuple representing a protein spectrum
+    :return: an integer representing the score of the vector against the spectrum
+    """
     if len(vector) != len(spectrum):
-        return None
+        raise ValueError
     return sum(int(i)*int(j) for i, j in zip(vector, spectrum))
 
 
 def scan_proteome(proteome: str, spectrum: list, amino_acid_dict: dict):
     score = -inf
     best_match = ''
-
+    spectrum_len = len(spectrum)
     masses = protein_to_mass(proteome, amino_acid_dict)
     vector = masses_to_vector(masses)
     for i in range(len(proteome)):
@@ -35,12 +53,15 @@ def scan_proteome(proteome: str, spectrum: list, amino_acid_dict: dict):
         start_vector = vector[i]
         for j in range(i+1, len(proteome)):
             start_vector += vector[j]
-            current_score = score_peptide(start_vector, tuple(spectrum))
-            if current_score is None:
-                continue
-            if current_score > score:
-                best_match = proteome[i:j+1]
-                score = current_score
+            if len(start_vector) > spectrum_len:
+                break
+            elif len(start_vector) == spectrum_len:
+                current_score = score_peptide(start_vector, tuple(spectrum))
+                if current_score > score:
+                    best_match = proteome[i:j+1]
+                    score = current_score
+            else:
+                pass
 
     return best_match, score
 
