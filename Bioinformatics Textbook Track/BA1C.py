@@ -1,7 +1,5 @@
-NUCLEOTIDE_DICT = {'A': 'T', 'C': 'G', 'G': 'C', 'T': 'A'}
-
-
 def reverse_comp(nucleotide_sequence):
+    NUCLEOTIDE_DICT = {'A': 'T', 'C': 'G', 'G': 'C', 'T': 'A'}
     output = [NUCLEOTIDE_DICT[i] for i in nucleotide_sequence]
     output.reverse()
     return ''.join(output)
